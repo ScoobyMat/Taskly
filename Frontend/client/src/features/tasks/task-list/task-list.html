@@ -1,0 +1,33 @@
+<div class="px-4 md:px-0 max-w-4xl mx-auto py-6">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-2xl font-bold">Lista zadań</h2>
+    <button class="btn btn-primary" [routerLink]="['/tasks', 'create']">
+      Nowe zadanie
+    </button>
+  </div>
+
+  <app-task-filter (filterChanged)="onFilterChanged($event)"></app-task-filter>
+
+  @if (task$ | async; as tasks) {
+  <div class="flex flex-col gap-4">
+    @for (task of tasks; track task.id) {
+    <a [routerLink]="['/tasks', task.id]"
+      class="block bg-white text-black shadow rounded-xl p-5 hover:bg-gray-100 transition">
+      <div class="flex justify-between items-start">
+        <div>
+          <h3 class="text-lg font-semibold">{{ task.title }}</h3>
+          <p class="text-xs text-gray-500">Termin: {{ task.dueDate | date: 'shortDate' }}</p>
+          <p class="text-xs text-gray-500">Kategoria: {{ task.category }}</p>
+          <p class="text-xs text-gray-500">Priorytet: {{ TaskPriorityLabels[task.priority]}}</p>
+        </div>
+        <span class="text-sm px-2 py-1 rounded-full" [ngClass]="'status-' + task.status.toLowerCase()">
+          {{ TaskStatusLabels[task.status] }}
+        </span>
+      </div>
+    </a>
+    }
+  </div>
+  } @else {
+  <p class="text-gray-500 text-center">Nie znaleziono zadań.</p>
+  }
+</div>

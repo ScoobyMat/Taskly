@@ -1,0 +1,115 @@
+<div class="min-h-screen flex items-start p-4">
+  <div class="card bg-base-100 w-full max-w-xl mx-auto p-6 rounded-lg shadow-lg">
+    <h2 class="card-title text-3xl font-bold mb-4 mt-6 text-primary justify-center text-center">
+      Zarejestruj się
+    </h2>
+
+    <div class="card-body w-full items-center p-0 sm:p-6">
+      <form (ngSubmit)="register(registerForm)" #registerForm="ngForm"
+        class="flex flex-col gap-4 w-full max-w-md mx-auto" novalidate>
+
+        <div class="form-control w-full">
+          <label for="name" class="label"><span class="label-text p-1">Imię</span></label>
+          <input id="name" name="firstName" type="text" [(ngModel)]="creds.firstName" #firstNameCtrl="ngModel" required
+            minlength="2" maxlength="50" autocomplete="given-name" class="input input-bordered w-full"
+            [ngClass]="{'input-error': firstNameCtrl.invalid && (firstNameCtrl.touched || firstNameCtrl.dirty)}"
+            placeholder="Wprowadź swoje imię" />
+          <div class="text-error text-sm mt-1">
+            @if (firstNameCtrl.invalid && (firstNameCtrl.touched || firstNameCtrl.dirty)) {
+            @if (firstNameCtrl.errors?.['required']) { <span>Imię jest wymagane.</span> }
+            @if (firstNameCtrl.errors?.['minlength']) { <span>Minimum 2 znaki.</span> }
+            @if (firstNameCtrl.errors?.['maxlength']) { <span>Maksymalnie 50 znaków.</span> }
+            }
+          </div>
+        </div>
+
+        <div class="form-control w-full">
+          <label for="surname" class="label"><span class="label-text p-1">Nazwisko</span></label>
+          <input id="surname" name="lastName" type="text" [(ngModel)]="creds.lastName" #lastNameCtrl="ngModel" required
+            minlength="2" maxlength="50" autocomplete="family-name" class="input input-bordered w-full"
+            [ngClass]="{'input-error': lastNameCtrl.invalid && (lastNameCtrl.touched || lastNameCtrl.dirty)}"
+            placeholder="Wprowadź swoje nazwisko" />
+          <div class="text-error text-sm mt-1">
+            @if (lastNameCtrl.invalid && (lastNameCtrl.touched || lastNameCtrl.dirty)) {
+            @if (lastNameCtrl.errors?.['required']) { <span>Nazwisko jest wymagane.</span> }
+            @if (lastNameCtrl.errors?.['minlength']) { <span>Minimum 2 znaki.</span> }
+            @if (lastNameCtrl.errors?.['maxlength']) { <span>Maksymalnie 50 znaków.</span> }
+            }
+          </div>
+        </div>
+
+        <div class="form-control w-full">
+          <label for="username" class="label"><span class="label-text p-1">Nazwa użytkownika</span></label>
+          <input id="username" name="username" type="text" [(ngModel)]="creds.username" #usernameCtrl="ngModel" required
+            minlength="3" maxlength="30" autocomplete="username" class="input input-bordered w-full"
+            [ngClass]="{'input-error': usernameCtrl.invalid && (usernameCtrl.touched || usernameCtrl.dirty)}"
+            placeholder="Wprowadź swoją nazwę użytkownika" />
+          <div class="text-error text-sm mt-1">
+            @if (usernameCtrl.invalid && (usernameCtrl.touched || usernameCtrl.dirty)) {
+            @if (usernameCtrl.errors?.['required']) { <span>Nazwa użytkownika jest wymagana.</span> }
+            @if (usernameCtrl.errors?.['minlength']) { <span>Minimum 3 znaki.</span> }
+            @if (usernameCtrl.errors?.['maxlength']) { <span>Maksymalnie 30 znaków.</span> }
+            }
+          </div>
+        </div>
+
+        <div class="form-control w-full">
+          <label for="email" class="label"><span class="label-text p-1">Email</span></label>
+          <input id="email" name="email" type="email" email [(ngModel)]="creds.email" #emailCtrl="ngModel" required
+            maxlength="100" autocomplete="email" class="input input-bordered w-full"
+            [ngClass]="{'input-error': emailCtrl.invalid && (emailCtrl.touched || emailCtrl.dirty)}"
+            placeholder="Wprowadź swój adres email" />
+          <div class="text-error text-sm mt-1">
+            @if (emailCtrl.invalid && (emailCtrl.touched || emailCtrl.dirty)) {
+            @if (emailCtrl.errors?.['required']) { <span>Email jest wymagany.</span> }
+            @if (emailCtrl.errors?.['email']) { <span>Podaj prawidłowy adres email.</span> }
+            @if (emailCtrl.errors?.['maxlength']) { <span>Maksymalnie 100 znaków.</span> }
+            }
+          </div>
+        </div>
+
+        <div class="form-control w-full">
+          <label for="password" class="label"><span class="label-text p-1">Hasło</span></label>
+          <input id="password" name="password" type="password" [(ngModel)]="creds.password" #passwordCtrl="ngModel"
+            required minlength="8" maxlength="100" autocomplete="new-password" class="input input-bordered w-full"
+            [ngClass]="{'input-error': passwordCtrl.invalid && (passwordCtrl.touched || passwordCtrl.dirty)}"
+            placeholder="Wprowadź swoje hasło" />
+          <div class="text-error text-sm mt-1">
+            @if (passwordCtrl.invalid && (passwordCtrl.touched || passwordCtrl.dirty)) {
+            @if (passwordCtrl.errors?.['required']) { <span>Hasło jest wymagane.</span> }
+            @if (passwordCtrl.errors?.['minlength']) { <span>Minimum 8 znaków.</span> }
+            @if (passwordCtrl.errors?.['maxlength']) { <span>Maksymalnie 100 znaków.</span> }
+            }
+          </div>
+        </div>
+
+        <div class="form-control w-full">
+          <label for="confirmPassword" class="label"><span class="label-text p-1">Powtórz hasło</span></label>
+          <input id="confirmPassword" name="confirmPassword" type="password" [(ngModel)]="confirmPassword"
+            #confirmCtrl="ngModel" required minlength="8" maxlength="100" autocomplete="new-password"
+            class="input input-bordered w-full"
+            [ngClass]="{'input-error': (confirmCtrl.invalid && (confirmCtrl.touched || confirmCtrl.dirty)) || (!confirmCtrl.invalid && (registerForm.submitted || confirmCtrl.touched) && passwordsMismatch)}"
+            placeholder="Powtórz hasło" />
+          <div class="text-error text-sm mt-1">
+            @if (confirmCtrl.invalid && (confirmCtrl.touched || confirmCtrl.dirty)) {
+            @if (confirmCtrl.errors?.['required']) { <span>To pole jest wymagane.</span> }
+            @if (confirmCtrl.errors?.['minlength']) { <span>Minimum 8 znaków.</span> }
+            @if (confirmCtrl.errors?.['maxlength']) { <span>Maksymalnie 100 znaków.</span> }
+            }
+            @if (!confirmCtrl.invalid && (registerForm.submitted || confirmCtrl.touched) && passwordsMismatch) {
+            <span>Hasła muszą być identyczne.</span>
+            }
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-3 mt-2">
+          <button (click)="cancel()" type="button" class="btn">Anuluj</button>
+          <button type="submit" class="btn btn-primary"
+            [disabled]="registerForm.invalid || passwordsMismatch || isSubmitting">
+            {{ isSubmitting ? 'Rejestracja…' : 'Zarejestruj się' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<div class="min-h-screen flex items-start p-4">
+  <div class="card bg-base-100 w-full max-w-xl mx-auto p-6 rounded-lg shadow-lg">
+    <h2 class="card-title text-3xl font-bold mb-4 text-primary justify-center text-center">
+      Logowanie
+    </h2>
+
+    <div class="card-body w-full items-center p-0">
+      <form (ngSubmit)="login()" #registerForm="ngForm" class="flex flex-col gap-4 w-full max-w-md mx-auto">
+
+        <div class="form-control w-full">
+          <label for="email" class="label">
+            <span class="label-text p-1">Email</span>
+          </label>
+          <input type="email" id="email" name="email" placeholder="Wprowadź swój adres email" [(ngModel)]="creds.email"
+            required class="input input-bordered w-full" />
+        </div>
+
+        <div class="form-control w-full">
+          <label for="password" class="label">
+            <span class="label-text p-1">Hasło</span>
+          </label>
+          <input type="password" id="password" name="password" placeholder="Wprowadź swoje hasło"
+            [(ngModel)]="creds.password" required class="input input-bordered w-full" />
+        </div>
+
+        <div class="flex items-center justify-center gap-3">
+          <button (click)="cancel()" type="button" class="btn">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zaloguj się</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

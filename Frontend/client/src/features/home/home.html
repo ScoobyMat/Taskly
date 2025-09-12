@@ -1,0 +1,35 @@
+<div class="hero bg-base-200 min-h-screen mt-15">
+  @if (accountService.currentUser(); as user) {
+  <div class="hero-content text-center flex flex-col items-center">
+    <h1 class="text-5xl font-bold mb-4">Witaj z powrotem, {{ user.firstName }}!</h1>
+    <p class="py-4 max-w-xl">
+      Ciesz się pełnym dostępem do swoich zadań i projektów. <br>
+      Gotowy, by działać dalej?
+    </p>
+    <button (click)="showTask()" class="btn btn-primary px-6">Pokaż zadania</button>
+  </div>
+  } @else {
+  @if (!registerMode()) {
+  <div class="hero-content text-center flex flex-col items-center">
+    <img src="logo.png" alt="Taskly Logo" class="w-75 h-auto" />
+
+    <h1 class="text-5xl font-bold mb-4">Witaj w Taskly</h1>
+    <p class="py-4 max-w-xl">
+      Taskly to Twój codzienny partner w produktywności. Zarządzaj zadaniami z łatwością i osiągaj więcej każdego dnia –
+      szybciej, mądrzej i bez stresu. Niezależnie od tego, czy pracujesz sam, czy w zespole – Taskly wspiera Cię na
+      każdym kroku.
+    </p>
+    <strong class="max-w-xl">
+      Dołącz do Taskly – i działaj skutecznie, każdego dnia. <br />
+    </strong>
+    <div class="flex space-x-4 mt-6">
+      <button (click)="showRegister(true)" class="btn btn-accent px-6">Zarejestruj się</button>
+    </div>
+  </div>
+  } @else {
+  <div class="w-full text-2xl flex justify-center">
+    <app-register class="w-full" (cancelRegister)="showRegister($event)" />
+  </div>
+  }
+  }
+</div>

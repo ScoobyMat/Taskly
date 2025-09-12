@@ -1,0 +1,41 @@
+<div class="card bg-base-100 shadow-sm mb-4">
+  <div class="card-body">
+    <div class="flex flex-wrap gap-4 items-center">
+
+      <input [(ngModel)]="title" placeholder="Tytuł"
+        class="input input-bordered w-full sm:w-auto flex-1 min-w-[180px]" />
+
+      <select [(ngModel)]="status" class="select select-bordered w-full sm:w-auto flex-1 min-w-[180px]">
+        <option [ngValue]="undefined">Status</option>
+        @for (s of taskStatuses; track s) {
+        <option [ngValue]="s">{{ TaskStatusLabels[s] }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="priority" class="select select-bordered w-full sm:w-auto flex-1 min-w-[180px]">
+        <option [ngValue]="undefined">Priorytet</option>
+        @for (p of taskPriorities; track p) {
+        <option [ngValue]="p">{{ TaskPriorityLabels[p] }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="category" class="select select-bordered w-full sm:w-auto flex-1 min-w-[180px]">
+        <option [ngValue]="undefined">Kategorie</option>
+        @for (cat of categories(); track cat) {
+        <option [ngValue]="cat">{{ cat }}</option>
+        } @empty {
+        <option disabled>Brak kategorii</option>
+        }
+      </select>
+
+      <select [(ngModel)]="sortByDueDate" class="select select-bordered w-full sm:w-auto flex-1 min-w-[180px]">
+        <option [ngValue]="undefined">Sortuj</option>
+        <option [ngValue]="'asc'">Termin ↑</option>
+        <option [ngValue]="'desc'">Termin ↓</option>
+      </select>
+
+      <button class="btn btn-outline sm:btn-sm" (click)="onReset()">Wyczyść</button>
+      <button class="btn btn-primary sm:btn-sm" (click)="onFilter()">Filtruj</button>
+    </div>
+  </div>
+</div>

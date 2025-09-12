@@ -1,0 +1,31 @@
+.status-new {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-inprogress {
+  background-color: #cce5ff;
+  color: #004085;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-done {
+  background-color: #e2e3e5;
+  color: #383d41;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}

@@ -1,0 +1,39 @@
+<div class="p-6 max-w-2xl mx-auto bg-base-100 rounded-lg shadow-md">
+  <div>
+    <button (click)="cancel()" type="button" class="btn btn-ghost btn-secondary">
+      <i class="fa-solid fa-circle-left"></i>
+    </button>
+  </div>
+  @if (task$ | async; as task) {
+  <h1 class="text-3xl font-bold mb-4">{{ task.title }}</h1>
+  <p class="mb-4 font-mono">{{ task.description }}</p>
+
+  <ul class="text-sm mb-6 space-y-1">
+    <li><strong>Status:</strong> {{ task.status }}</li>
+    <li><strong>Priorytet:</strong> {{ task.priority }}</li>
+    <li><strong>Termin:</strong> {{ task.dueDate | date: 'longDate' }}</li>
+    <li><strong>Kategoria:</strong> {{ task.category }}</li>
+    <li><strong>Utworzone:</strong> {{ task.createdAt | date: 'short' }}</li>
+    <li><strong>Ostatnia aktualizacja:</strong> {{ task.updatedAt | date: 'longDate' }}</li>
+  </ul>
+
+  <div class="flex gap-4">
+    <button [routerLink]="['/tasks', task.id, 'edit']" class="btn btn-primary">Edytuj</button>
+    <label for="delete-modal" class="btn btn-error text-white cursor-pointer">Usuń</label>
+  </div>
+  } @else {
+  <p class="text-gray-400">Ładowanie zadania...</p>
+  }
+
+  <input type="checkbox" id="delete-modal" class="modal-toggle" />
+  <div class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Potwierdź usunięcie</h3>
+      <p class="py-4">Czy na pewno chcesz usunąć to zadanie?</p>
+      <div class="modal-action">
+        <label for="delete-modal" class="btn">Anuluj</label>
+        <button (click)="confirmDelete()" class="btn btn-error">Usuń</button>
+      </div>
+    </div>
+  </div>
+</div>

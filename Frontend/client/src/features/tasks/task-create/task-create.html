@@ -1,0 +1,69 @@
+<form #form="ngForm" (ngSubmit)="createTask(form)"
+  class="max-w-xl mx-auto p-6 bg-base-100 rounded-lg shadow-md space-y-6" novalidate>
+
+  <div>
+    <button (click)="cancel()" type="button" class="btn btn-ghost btn-secondary">
+      <i class="fa-solid fa-circle-left"></i>
+    </button>
+  </div>
+
+  <h2 class="text-center text-3xl font-bold mb-6">Utwórz nowe zadanie</h2>
+
+  <div class="form-control w-full">
+    <label for="title" class="label"><span class="label-text font-medium">Tytuł</span></label>
+    <input id="title" name="title" type="text" [(ngModel)]="newTask.title" #titleCtrl="ngModel" required minlength="3"
+      placeholder="Wprowadź tytuł zadania" class="input input-bordered w-full" />
+    <div class="text-error text-sm mt-1">
+      @if (titleCtrl.invalid && (titleCtrl.dirty || titleCtrl.touched)) {
+      @if (titleCtrl.errors?.['required']) { <span>Tytuł jest wymagany.</span> }
+      @if (titleCtrl.errors?.['minlength']) { <span>Minimum 3 znaki.</span> }
+      }
+    </div>
+  </div>
+
+  <div class="form-control w-full">
+    <label for="description" class="label"><span class="label-text font-medium">Opis</span></label>
+    <textarea id="description" name="description" rows="4" [(ngModel)]="newTask.description" #descCtrl="ngModel"
+      maxlength="200" placeholder="Wprowadź opis zadania lub pozostaw puste (max 200 znaków)"
+      class="textarea textarea-bordered w-full resize-none"></textarea>
+    <div class="text-error text-sm mt-1">
+      @if (descCtrl.errors?.['maxlength']) { <span>Maksymalnie 200 znaków.</span> }
+    </div>
+  </div>
+
+  <div class="form-control w-full">
+    <label for="priority" class="label"><span class="label-text font-medium">Priorytet</span></label>
+    <select id="priority" name="priority" [(ngModel)]="newTask.priority" class="select select-bordered w-full">
+      <option [ngValue]="null">Brak</option>
+      @for (p of taskPriorities; track p) {
+      <option [ngValue]="p">{{ TaskPriorityLabels[p] }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="form-control w-full">
+    <label for="dueDate" class="label"><span class="label-text font-medium">Termin wykonania</span></label>
+    <input id="dueDate" name="dueDate" type="date" [(ngModel)]="newTask.dueDate" [min]="today"
+      class="input input-bordered w-full" />
+  </div>
+
+  <div class="form-control w-full">
+    <label for="category" class="label"><span class="label-text font-medium">Kategoria</span></label>
+    <select id="category" name="category" [(ngModel)]="newTask.category" #catCtrl="ngModel" required
+      class="select select-bordered w-full">
+      <option [ngValue]="''" disabled>Wybierz kategorię</option>
+      @for (category of categories(); track category) {
+      <option [ngValue]="category">{{ category }}</option>
+      }
+    </select>
+    <div class="text-error text-sm mt-1">
+      @if (catCtrl.invalid && (catCtrl.dirty || catCtrl.touched)) {
+      <span>Kategoria jest wymagana.</span>
+      }
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary w-full" [disabled]="form.invalid || isSubmitting">
+    {{ isSubmitting ? 'Zapisywanie…' : 'Utwórz zadanie' }}
+  </button>
+</form>

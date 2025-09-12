@@ -31,11 +31,6 @@ public class UserRepository : IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync()
-    {
-        return await _context.Users.ToListAsync();
-    }
-
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users.SingleOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
@@ -44,11 +39,6 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(Guid userId)
     {
         return await _context.Users.FindAsync(userId);
-    }
-
-    public async Task<User?> GetByUsernameAsync(string username)
-    {
-        return await _context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == username.ToLower());
     }
 
     public async Task UpdateAsync(User user)

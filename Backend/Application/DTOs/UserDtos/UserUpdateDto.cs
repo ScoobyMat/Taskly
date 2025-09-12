@@ -6,7 +6,6 @@ namespace Application.DTOs.UserDtos;
 
 public class UserUpdateDto : IMap
 {
-    public Guid Id { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? UserName { get; set; }
@@ -15,6 +14,7 @@ public class UserUpdateDto : IMap
 
     public void Mapping(Profile profile)
     {
-        profile.CreateMap<UserUpdateDto, User>();
+        profile.CreateMap<UserUpdateDto, User>()
+            .ForMember(d => d.Password, opt => opt.Ignore());
     }
 }

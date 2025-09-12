@@ -1,6 +1,5 @@
-
 import { Component, inject, signal } from '@angular/core';
-import { AccountService } from '../../core/services/account-service';
+import { AuthService } from '../../core/services/auth-service';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ToastService } from '../../core/services/toast-service';
 
@@ -11,13 +10,13 @@ import { ToastService } from '../../core/services/toast-service';
   styleUrl: './nav.css'
 })
 export class Nav {
-protected accountService = inject(AccountService);
+protected authService = inject(AuthService);
 private router = inject(Router);
 private toast = inject(ToastService);
 private creds: any = {};
 
 login() {
-  this.accountService.login(this.creds).subscribe({
+  this.authService.login(this.creds).subscribe({
     next: () => {
       this.router.navigateByUrl('/tasks');
       this.toast.success('Zalogowano pomyślnie');
@@ -30,7 +29,7 @@ login() {
 }
 
 logout() {
-  this.accountService.logout();
+  this.authService.logout();
   this.router.navigateByUrl('/');
   this.toast.success('Wylogowano pomyślnie');
 }

@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-public class AccountController : BaseApiController
+public class AuthController : BaseApiController
 {
-    private readonly IAuthenticationService _accountService;
+    private readonly IAuthenticationService _authService;
 
-    public AccountController(IAuthenticationService accountService)
+    public AuthController(IAuthenticationService authService)
     {
-        _accountService = accountService;
+        _authService = authService;
     }
 
     [HttpPost("register")]
@@ -19,7 +19,7 @@ public class AccountController : BaseApiController
     {
         try
         {
-            var user = await _accountService.Register(registerDto);
+            var user = await _authService.Register(registerDto);
             return Ok(user);
         }
         catch (ArgumentException ex)
@@ -37,7 +37,7 @@ public class AccountController : BaseApiController
     {
         try
         {
-            var user = await _accountService.Login(loginDto);
+            var user = await _authService.Login(loginDto);
             return Ok(user);
         }
         catch (UnauthorizedAccessException ex)

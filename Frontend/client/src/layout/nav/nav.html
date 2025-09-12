@@ -1,19 +1,19 @@
 <header class="fixed top-0 inset-x-0 z-50 bg-gradient-to-r from-blue-500 to-white">
-  <div class="navbar max-w-7xl mx-auto px-4 md:px-8">
+  <div class="navbar w-full px-4 md:px-8 lg:px-16">
     <div class="navbar-start gap-4">
       <a routerLink="/" class="flex items-center gap-3 pr-6 border-r border-white/60">
         <h3 class="text-2xl font-semibold uppercase text-white tracking-wide">Taskly</h3>
       </a>
 
       <nav class="hidden md:flex gap-4 uppercase text-white/90">
-        @if (accountService.currentUser()) {
+        @if (authService.currentUser()) {
         <a routerLink="/tasks" routerLinkActive="text-accent font-semibold">Zadania</a>
         }
       </nav>
     </div>
 
     <div class="navbar-end ml-auto gap-3">
-      @if (accountService.currentUser(); as user) {
+      @if (authService.currentUser(); as user) {
       <div class="flex items-center text-center gap-3">
         <div class="flex items-center gap-2 px-3 py-1 shadow-sm">
           <div class="font-semibold text-black">

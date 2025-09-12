@@ -1,11 +1,11 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { AccountService } from '../services/account-service';
+import { AuthService } from '../services/auth-service';
 import { inject } from '@angular/core';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const accountService = inject(AccountService);
+  const authService = inject(AuthService);
 
-  const user = accountService.currentUser();
+  const user = authService.currentUser();
   if (user) {
     req = req.clone({
       setHeaders: {

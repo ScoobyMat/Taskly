@@ -2,7 +2,7 @@ import { Component, inject, output } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RegisterCreds } from '../../../shared/types/user';
-import { AccountService } from '../../../core/services/account-service';
+import { AuthService } from '../../../core/services/auth-service';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../core/services/toast-service';
 
@@ -14,7 +14,7 @@ import { ToastService } from '../../../core/services/toast-service';
   styleUrls: ['./register.css'],
 })
 export class Register {
-  private accountService = inject(AccountService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
 
@@ -49,11 +49,10 @@ export class Register {
     }
 
     this.isSubmitting = true;
-    this.accountService.register(this.creds).subscribe({
+    this.authService.register(this.creds).subscribe({
       next: () => {
         this.toast.success('Zarejestrowano pomyślnie');
-        this.router.navigateByUrl('/login');
-        this.cancel();
+        this.router.navigateByUrl('/');
       },
       error: (error) => {
         const msg = error?.error?.message || error?.message || 'Błąd podczas rejestracji';

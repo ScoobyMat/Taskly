@@ -1,86 +1,43 @@
 using Application.DTOs.UserDtos;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
-public class UsersController : BaseApiController
+[Authorize]
+public sealed class UsersController : BaseApiController
 {
+    private readonly ICurrentUserService _currentUser;
     private readonly IUserService _userService;
 
-    public UsersController(IUserService userService)
+    public UsersController(ICurrentUserService currentUser, IUserService userService)
     {
+        _currentUser = currentUser;
         _userService = userService;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+    [HttpGet("me")]
+    public async Task<ActionResult<UserDto>> GetMe()
     {
-        try
-        {
-            var users = await _userService.GetAllUsersAsync();
-            return Ok(users);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var userId = _currentUser.UserId;
+        var dto = await _userService.GetUserByIdAsync(userId);
+        return dto is null ? NotFound() : Ok(dto);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<UserDto>> GetUser(Guid id)
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMe([FromBody] UserUpdateDto dto)
     {
-        try
-        {
-            var user = await _userService.GetUserByIdAsync(id);
-            return Ok(user);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var userId = _currentUser.UserId;
+        await _userService.UpdateUserAsync(userId, dto);
+        return NoContent();
     }
 
-    [HttpGet("username/{username}")]
-    public async Task<ActionResult<UserDto>> GetUserByUsername(string username)
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteMe()
     {
-        try
-        {
-            var userDto = await _userService.GetUserByUsernameAsync(username);
-            return Ok(userDto);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
-
-    [HttpPut]
-    public async Task<ActionResult<UserDto>> UpdateUser(UserUpdateDto userUpdateDto)
-    {
-        try
-        {
-            var updatedUser = await _userService.UpdateUserAsync(userUpdateDto);
-
-            return Ok(updatedUser);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteUser(Guid id)
-    {
-        try
-        {
-            await _userService.DeleteUserAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var userId = _currentUser.UserId;
+        await _userService.DeleteUserAsync(userId);
+        return NoContent();
     }
 }

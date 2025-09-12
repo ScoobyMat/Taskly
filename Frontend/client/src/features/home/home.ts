@@ -1,6 +1,6 @@
 import { Component, inject, Input, signal } from '@angular/core';
 import { Register } from "../account/register/register";
-import { AccountService } from '../../core/services/account-service';
+import { AuthService } from '../../core/services/auth-service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 export class Home {
 private router = inject(Router);
 protected registerMode = signal(false);
-protected accountService = inject(AccountService);
+protected authService = inject(AuthService);
 
 showRegister(value: boolean) {
   this.registerMode.set(value);

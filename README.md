@@ -8,7 +8,7 @@
 - [Architektura](#architektura)
 - [Widoki](#widoki)
 - [Uruchamianie](#uruchamianie)
-- [API - dostępne endpointy](#api-dostępne-endpointy)
+- [API](#api)
 
 ---
 
@@ -89,7 +89,7 @@ ng serve                              # FE: http://localhost:4200
 
 ---
 
-## API - dostępne endpointy
+## API
 
 - **`AuthController`**
   - `POST /api/auth/register` – rejestracja użytkownika

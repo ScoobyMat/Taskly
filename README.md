@@ -91,16 +91,21 @@ ng serve                              # FE: http://localhost:4200
 
 ## API — dostępne endpointy
 
-- `AccountController`
-  - `POST /api/account/register` – rejestracja użytkownika
-  - `POST /api/account/login` – logowanie, zwraca token JWT
+- **`AuthController`**
+  - `POST /api/auth/register` – rejestracja użytkownika
+  - `POST /api/auth/login` – logowanie, zwraca token JWT
     
-- `TasksController` (wymaga autoryzacji)
+- **`UsersController`** (wymaga autoryzacji)
+  - `GET /api/users/me` – dane bieżącego użytkownika
+  - `PUT /api/users/me` – aktualizacja danych bieżącego użytkownika
+  - `DELETE /api/users/me` – usunięcie konta
+    
+- **`TasksController`** (wymaga autoryzacji)
   - `GET /api/tasks` – lista zadań (opcjonalnie filtr parametrami)
   - `GET /api/tasks/{id}` – szczegóły
   - `POST /api/tasks` – utworzenie
   - `PUT /api/tasks/{id}` – edycja
   - `DELETE /api/tasks/{id}` – usunięcie
     
-- `CategoryController`
+- **`CategoryController`**
   - `GET /api/category` – lista kategorii

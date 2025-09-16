@@ -1,4 +1,8 @@
 using API.Installers;
+using API.Middleware;
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,24 +10,38 @@ var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;
 builder.Services.InstallServicesInAssembly(configuration);
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
 }
+
+app.UseHttpMetrics();
+app.MapMetrics("/api/metrics");
+
+app.UseSwagger(c =>
+{
+    c.RouteTemplate = "swagger/{documentName}/swagger.json";
+});
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Taskly API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 
 app.UseCors("CorsPolicy");
 
+app.UseMiddleware<CorrelationIdMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/api/health");
+app.MapHealthChecks("/api/ready");
 
 app.MapControllers();
 

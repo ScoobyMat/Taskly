@@ -7,6 +7,8 @@ public class SwaggerInstaller : IInstaller
 {
     public void InstallServices(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddEndpointsApiExplorer();
+        
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo

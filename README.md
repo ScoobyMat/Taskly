@@ -108,4 +108,10 @@ ng serve                              # FE: http://localhost:4200
   - `DELETE /api/tasks/{id}` – usunięcie
     
 - **`CategoryController`**
-  - `GET /api/category` – lista kategorii
+  - `GET /api/category` – lista kategorii  
+
+ 
+**Endpoints (dev)**
+---
+Health: `GET /api/health`, `GET /api/ready`  
+Metrics: `GET /api/metrics`

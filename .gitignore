@@ -28,12 +28,12 @@ logs/
 *.tar
 .DS_Store
 Thumbs.db
+
 .env
 
 **/Migrations/*Designer.cs
 
-Backend/API/appsettings.*.json
-!Backend/API/appsettings.Development.json.example
+appsettings.json
 
 Frontend/client/node_modules/
 Frontend/client/dist/
@@ -54,3 +54,6 @@ yarn-error.log*
 package-lock.json
 pnpm-lock.yaml
 
+Backend/API/appsettings.Development.json
+db/init.sql
+k8s/secrets.yml

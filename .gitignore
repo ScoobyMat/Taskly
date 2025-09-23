@@ -32,21 +32,9 @@ Thumbs.db
 
 **/Migrations/*Designer.cs
 
-Backend/API/appsettings.*.json
-!Backend/API/appsettings.Development.json.example
-
-Frontend/client/node_modules/
-Frontend/client/dist/
-Frontend/client/tmp/
-Frontend/client/out-tsc/
-Frontend/client/bazel-out/
-Frontend/client/.angular/cache
-Frontend/client/.sass-cache/
-Frontend/client/connect.lock
-Frontend/client/coverage/
-Frontend/client/libpeerconnection.log
-Frontend/client/testem.log
-Frontend/client/typings/
+node_modules/
+Frontend/**/dist/
+Frontend/**/.angular/
 
 npm-debug.log*
 yarn-debug.log*
@@ -54,3 +42,4 @@ yarn-error.log*
 package-lock.json
 pnpm-lock.yaml
 
+db/init.sql

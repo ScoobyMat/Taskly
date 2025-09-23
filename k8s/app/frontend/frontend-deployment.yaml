@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: taskly-frontend
+  name: frontend-deployment
   namespace: taskly
 spec:
   replicas: 1

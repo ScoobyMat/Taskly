@@ -1,12 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: db
+  name: postgres
   namespace: taskly
 spec:
   type: ClusterIP
   selector:
     app: taskly-db
   ports:
-    - port: 5432
+    - name: http
+      port: 5432
       targetPort: 5432

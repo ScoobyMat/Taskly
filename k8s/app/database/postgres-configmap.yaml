@@ -6,4 +6,4 @@ metadata:
 data:
   DB_PORT: "5432"
   DB_NAME: "TasklyDB"
-  DB_HOST: "db"
+  DB_HOST: "postgres"

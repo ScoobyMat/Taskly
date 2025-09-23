@@ -54,7 +54,6 @@ package-lock.json
 pnpm-lock.yaml
 
 appsettings.json
-appsettings.Development.json
 db/init.sql
-k8s/secrets/secret.local.yaml
 k8s/secrets/*.local.yaml
+k8s/secrets/secret.yaml

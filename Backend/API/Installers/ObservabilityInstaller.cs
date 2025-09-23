@@ -1,5 +1,4 @@
 using Infrastructure.Data;
-using Prometheus;
 
 namespace API.Installers;
 

@@ -22,15 +22,13 @@
 **Deployment**
 - Dockerfile
 - Docker-compose
+- K8s
 
 ---
 
 ## Uruchamianie
 
+Kubernetes + Ingress-NGINX
 ```bash
-cp .env.sample .env
-docker compose -f deploy/docker-compose/docker-compose.yml up --build
-# Frontend:  http://localhost:4200
-# Backend: http://localhost:5001/api/health
+kubectl apply -k deploy/k8s/
 ```
-

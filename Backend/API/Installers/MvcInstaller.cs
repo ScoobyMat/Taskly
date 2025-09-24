@@ -17,6 +17,5 @@ public class MvcInstaller : IInstaller
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
-        services.AddHealthChecks();
     }
 }

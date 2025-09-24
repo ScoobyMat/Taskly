@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: taskly
+
+resources:
+  - namespace.yaml
+  - app/database/postgres-configmap.yaml
+  - app/database/postgres-service.yaml
+  - app/database/postgres-headless.yaml
+  - app/database/postgres-statefulset.yaml
+  - app/backend/backend-service.yaml
+  - app/backend/backend-deployment.yaml
+  - app/frontend/frontend-nginx-configmap.yaml
+  - app/frontend/frontend-service.yaml
+  - app/frontend/frontend-deployment.yaml
+  - app/ingress.yaml
+  - secrets/secret.dev.yaml

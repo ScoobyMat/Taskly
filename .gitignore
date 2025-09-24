@@ -33,7 +33,6 @@ Thumbs.db
 
 **/Migrations/*Designer.cs
 
-
 node_modules/
 Frontend/**/dist/
 Frontend/**/.angular/
@@ -44,7 +43,11 @@ yarn-error.log*
 package-lock.json
 pnpm-lock.yaml
 
+
 appsettings.json
 db/init.sql
 k8s/secrets/*.local.yaml
 k8s/secrets/secret.yaml
+
+db/init.sql
+

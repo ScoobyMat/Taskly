@@ -51,3 +51,5 @@ k8s/secrets/secret.yaml
 
 db/init.sql
 
+deploy/helm/taskly/charts/*
+!deploy/helm/taskly/charts/*.tgz

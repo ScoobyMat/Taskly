@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "taskly.backend.fullname" . }}
+  labels:
+    {{- include "taskly.backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{.Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      app: backend
+      {{- include "taskly.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: backend
+        {{- include "taskly.selectorLabels" . | nindent 8 }}
+      annotations:
+      checksum/secret-jwt: {{ include (print .Template.BasePath "/secret.dev.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.backend.podSecurityContext}}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.backend.initDbWait.enabled }}
+      initContainers:
+        - name: wait-for-db
+          image: {{ .Values.backend.initDbWait.image }}
+          command:
+            - sh
+            - -c
+            - >-
+              until pg_isready
+              -h {{ .Values.postgresql.fullnameOverride }}
+              -p {{ .Values.backend.initDbWait.port }}
+              -U postgres; do
+                echo waiting for db; sleep 2;
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.fullnameOverride }}
+                  key: postgres-password
+      {{- end }}
+
+      containers:
+        - name: backend
+          image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.service.port }}
+
+          env:  
+          - name: ConnectionStrings__DefaultConnection
+            value: >-
+                Host={{ .Values.postgresql.fullnameOverride }};
+                Port=5432;
+                Database={{ .Values.postgresql.auth.database }};
+                Username={{ .Values.postgresql.auth.username }};
+                Password={{ .Values.postgresql.auth.password }};
+                Pooling=true
+
+          - name: JWT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "taskly.SecretName" . }}-secret
+                key: JWT_TOKEN
+
+          livenessProbe:
+            httpGet:
+              {{- with .Values.backend.livenessProbe }}
+              path: {{ .path }}
+              port: {{ .port }}
+              {{- end }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              {{- with .Values.backend.readinessProbe }}
+              path: {{ .path }}
+              port: {{ .port }}
+              {{- end }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+
+          {{- with .Values.backend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.backend.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.backend.volumeMounts | nindent 12 }}
+          {{- end }}
+
+      {{- if .Values.backend.volumes }}
+      volumes:
+        {{- toYaml .Values.backend.volumes | nindent 8 }}
+      {{- end }}
+

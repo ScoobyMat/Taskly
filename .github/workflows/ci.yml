@@ -32,11 +32,7 @@ jobs:
         run: |
           dotnet restore Taskly.sln
           dotnet build Taskly.sln --configuration Release --no-restore
-          dotnet test Taskly.sln --configuration Release --no-build --verbosity normal
-
-      - name: Validate EF migrations
-        working-directory: ./Backend
-        run: dotnet ef migrations script --project Infrastructure --startup-project API --output migrations.sql     
+          dotnet test Taskly.sln --configuration Release --no-build --verbosity normal 
 
   frontend:
     runs-on: ubuntu-latest

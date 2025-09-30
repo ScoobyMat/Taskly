@@ -22,13 +22,16 @@
 **Deployment**
 - Dockerfile
 - Docker-compose
-- K8s
+- Helm chart (deploy/helm/taskly)
 
 ---
 
 ## Uruchamianie
 
-Kubernetes + Ingress-NGINX
+Kubernetes + Helm + Ingress-NGINX
 ```bash
-kubectl apply -k deploy/k8s/
+helm dependency update deploy/helm/taskly
+
+helm upgrade --install taskly deploy/helm/taskly -n taskly --create-namespace
+
 ```

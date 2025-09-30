@@ -52,7 +52,7 @@ jobs:
           npm run build
 
   ghcr:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     permissions:

@@ -1,0 +1,110 @@
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+postgresql:
+  enabled: true
+  fullnameOverride: taskly-postgres
+  auth:
+    enablePostgresUser: true
+    username: MyUser
+    password: password123
+    database: TasklyDB
+  serviceBindings:
+    enabled: true 
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
+
+backend:
+  replicaCount: 3
+  image:
+    repository: taskly-backend
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  env:
+    jwtToken: "dev-demo-key-change-me-1234567890"
+  initDbWait:
+      enabled: true
+      image: "postgres:16"
+      port: 5432
+  livenessProbe:
+    path: /api/health
+    port: http
+  readinessProbe:
+    path: /api/ready
+    port: http
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "500m", memory: "512Mi" }
+  podSecurityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+  securityContext:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+  volumes:
+    - name: tmp
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp
+      mountPath: /tmp
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: taskly-frontend
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 101
+    fsGroup: 101
+    readOnlyRootFilesystem: true
+  resources:
+    requests: { cpu: "50m", memory: "128Mi" }
+    limits:   { cpu: "200m", memory: "256Mi" }
+  nginx:
+    useConfigMap: true
+  volumes: []
+  volumeMounts: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  host: ""
+  tls:
+    enabled: false
+    secretName: "" 
+
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80

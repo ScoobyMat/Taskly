@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.DTOs.TaskDtos;
+using Application.Interfaces;
 using Application.Mappings;
 using AutoMapper;
 using Domain.Entities;
@@ -9,226 +10,202 @@ using FluentAssertions;
 using Moq;
 
 namespace Taskly.Tests.Services;
+
 public class TaskServiceTests
 {
-/*    private readonly Mock<ITaskItemRepository> _repoMock;
+    private readonly Mock<ITaskItemRepository> _repoMock = new();
+    private readonly Mock<ICurrentUserService> _currentMock = new();
     private readonly IMapper _mapper;
     private readonly TaskService _service;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public TaskServiceTests()
     {
-        _repoMock = new Mock<ITaskItemRepository>();
+        var cfg = new MapperConfiguration(cfg => cfg.AddProfile(new MappingProfile()));
+        _mapper = cfg.CreateMapper();
 
-        var config = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile(new MappingProfile());
-        });
-        _mapper = config.CreateMapper();
+        _currentMock.SetupGet(c => c.UserId).Returns(_userId);
+        _currentMock.SetupGet(c => c.IsAuthenticated).Returns(true);
 
-        _service = new TaskService(_repoMock.Object, _mapper);
+        _service = new TaskService(_repoMock.Object, _mapper, _currentMock.Object);
     }
 
     [Fact]
-    public async Task GetAllAsync_AdminRole_ReturnsAllTasks()
+    public async Task GetAllAsync_ReturnsTasks_ForCurrentUser()
     {
-        var tasks = new List<TaskItem>
+        var list = new List<TaskItem>
         {
-            new TaskItem { Id = Guid.NewGuid(), Title = "Task 1", Description = "Description for task 1", UserId = Guid.NewGuid() },
-            new TaskItem { Id = Guid.NewGuid(), Title = "Task 2", Description = "Description for task 2", UserId = Guid.NewGuid() }
+            new TaskItem { Id = Guid.NewGuid(), Title = "Test A", Description = "Test A", Status = TaskStatusEnum.New, Category = "Test", UserId = _userId },
+            new TaskItem { Id = Guid.NewGuid(), Title = "Test B", Description = "Test B", Status = TaskStatusEnum.New, Category = "Test", UserId = _userId },
         };
 
-        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(tasks);
+        _repoMock.Setup(r => r.GetByUserIdAsync(_userId)).ReturnsAsync(list);
 
-        var result = await _service.GetAllAsync(Guid.NewGuid(), UserRole.Admin);
+        var result = await _service.GetAllAsync();
 
         result.Should().HaveCount(2);
+        result.Select(x => x.Title).Should().Contain(new[] { "Test A", "Test B" });
     }
 
     [Fact]
-    public async Task GetAllAsync_UserRole_ReturnsOnlyUserTasks()
+    public async Task GetFilteredAsync_PassesFilter_ToRepository()
     {
-        var userId = Guid.NewGuid();
-
-        var allTasks = new List<TaskItem>
+        var filter = new TaskFilter { Title = "Test", Priority = TaskPriority.High, SortByDueDate = "desc" };
+        var list = new List<TaskItem>
         {
-            new() { Id = Guid.NewGuid(), Title = "Own", Description = "Description", UserId = userId },
-            new() { Id = Guid.NewGuid(), Title = "NotVisible", Description = "Description", UserId = Guid.NewGuid() }
+            new TaskItem { Id = Guid.NewGuid(), Title = "Test", Description = "x", Status = TaskStatusEnum.InProgress, Priority = TaskPriority.High, Category = "Test", UserId = _userId }
         };
 
-        var expectedTasks = allTasks.Where(t => t.UserId == userId).ToList();
+        _repoMock.Setup(r => r.GetFilteredAsync(_userId, filter)).ReturnsAsync(list);
 
-        _repoMock.Setup(r => r.GetByUserId(userId)).ReturnsAsync(expectedTasks);
+        var result = await _service.GetFilteredAsync(filter);
 
-        var result = await _service.GetAllAsync(userId, UserRole.User);
-
-        result.Should().HaveCount(expectedTasks.Count);
-        result.Should().OnlyContain(t => t.UserId == userId);
+        result.Should().HaveCount(1);
+        result.First().Title.Should().Be("Test");
+        _repoMock.Verify(r => r.GetFilteredAsync(_userId, filter), Times.Once);
     }
 
     [Fact]
-    public async Task GetByIdAsync_AdminRole_CanAccessAnyTask()
+    public async Task GetByIdAsync_Found_ReturnsDto()
     {
-        var task = new TaskItem
-        {
-            Id = Guid.NewGuid(),
-            Title = "Admin sees all",
-            Description = "Description",
-            UserId = Guid.NewGuid()
-        };
+        var id = Guid.NewGuid();
+        var entity = new TaskItem { Id = id, Title = "T", Description = "D", Status = TaskStatusEnum.New, Category = "c", UserId = _userId };
 
-        _repoMock.Setup(r => r.GetByIdAsync(task.Id)).ReturnsAsync(task);
+        _repoMock.Setup(r => r.GetByIdForUserAsync(id, _userId)).ReturnsAsync(entity);
 
-        var result = await _service.GetByIdAsync(task.Id, Guid.NewGuid(), UserRole.Admin);
+        var dto = await _service.GetByIdAsync(id);
 
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(task.Id);
+        dto.Should().NotBeNull();
+        dto!.Id.Should().Be(id);
     }
 
     [Fact]
-    public async Task GetByIdAsync_UserRole_SeesOnlyOwnTasks()
+    public async Task GetByIdAsync_NotFound_ReturnsNull()
     {
-        var userId = Guid.NewGuid();
-        var ownTask = new TaskItem { Id = Guid.NewGuid(), Title = "Own", Description = "Description", UserId = userId };
-        var foreignTask = new TaskItem { Id = Guid.NewGuid(), Title = "Forbidden", Description = "Description", UserId = Guid.NewGuid() };
+        var id = Guid.NewGuid();
+        _repoMock.Setup(r => r.GetByIdForUserAsync(id, _userId)).ReturnsAsync((TaskItem?)null);
 
-        _repoMock.Setup(r => r.GetByIdAsync(ownTask.Id)).ReturnsAsync(ownTask);
-        _repoMock.Setup(r => r.GetByIdAsync(foreignTask.Id)).ReturnsAsync(foreignTask);
+        var dto = await _service.GetByIdAsync(id);
 
-        var res1 = await _service.GetByIdAsync(ownTask.Id, userId, UserRole.User);
-        var res2 = await _service.GetByIdAsync(foreignTask.Id, userId, UserRole.User);
-
-        res1.Should().NotBeNull();
-        res2.Should().BeNull();
+        dto.Should().BeNull();
     }
 
     [Fact]
-    public async Task CreateAsync_Admin_CanAssign()
+    public async Task CreateAsync_MapsAndPersists_ForCurrentUser_ReturnsNewId()
     {
         var dto = new CreateTaskItemDto
         {
-            Title = "AdminTask",
-            Description = "Description",
-            CategoryId = Guid.NewGuid(),
+            Title = "New",
+            Description = "Desc",
+            Priority = TaskPriority.Medium,
+            Category = "work"
         };
 
-        _repoMock.Setup(r => r.AddAsync(It.IsAny<TaskItem>())).Returns(Task.CompletedTask);
-
-        var id = await _service.CreateAsync(dto, Guid.NewGuid(), UserRole.Admin);
-
-        id.Should().NotBe(Guid.Empty);
-    }
-
-    [Fact]
-    public async Task CreateAsync_User_AssignedUserId_IsIgnored()
-    {
-        var userId = Guid.NewGuid();
-        var dto = new CreateTaskItemDto
-        {
-            Title = "UserTask",
-            Description = "Description",
-            CategoryId = Guid.NewGuid(),
-        };
-
-        TaskItem? savedTask = null;
+        TaskItem? captured = null;
         _repoMock.Setup(r => r.AddAsync(It.IsAny<TaskItem>()))
-            .Callback<TaskItem>(task => savedTask = task)
+                 .Callback<TaskItem>(t => captured = t)
+                 .Returns(Task.CompletedTask);
+
+        var newId = await _service.CreateAsync(dto);
+
+        newId.Should().NotBe(Guid.Empty);
+        captured.Should().NotBeNull();
+        captured!.Title.Should().Be("New");
+        captured.UserId.Should().Be(_userId);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenFound_Updates_And_ReturnsTrue()
+    {
+        var id = Guid.NewGuid();
+        var existing = new TaskItem
+        {
+            Id = id,
+            Title = "Old",
+            Description = "Old D",
+            Status = TaskStatusEnum.New,
+            Priority = TaskPriority.Low,
+            Category = "c",
+            UserId = _userId
+        };
+
+        var update = new UpdateTaskItemDto
+        {
+            Id = id,
+            Title = "New title",
+            Description = "New desc",
+            Status = TaskStatusEnum.Done,
+            Priority = TaskPriority.High,
+            Category = "x"
+        };
+
+        _repoMock.Setup(r => r.GetByIdForUserAsync(id, _userId)).ReturnsAsync(existing);
+
+        TaskItem? captured = null;
+        _repoMock
+            .Setup(r => r.UpdateAsync(It.IsAny<TaskItem>()))
+            .Callback<TaskItem>(t => captured = t)
             .Returns(Task.CompletedTask);
 
-        var id = await _service.CreateAsync(dto, userId, UserRole.User);
+        var ok = await _service.UpdateAsync(update);
 
-        savedTask.Should().NotBeNull();
-        savedTask!.UserId.Should().Be(userId);
+        ok.Should().BeTrue();
+
+        _repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Once);
+
+        captured.Should().NotBeNull();
+        captured!.Id.Should().Be(id);
+        captured.Title.Should().Be("New title");
+        captured.Description.Should().Be("New desc");
+        captured.Status.Should().Be(TaskStatusEnum.Done);
+        captured.Priority.Should().Be(TaskPriority.High);
+        captured.Category.Should().Be("x");
     }
 
     [Fact]
-    public async Task UpdateAsync_Admin_CanUpdateAny()
+    public async Task UpdateAsync_WhenNotFound_ReturnsFalse()
     {
-        var taskId = Guid.NewGuid();
-        var dto = new UpdateTaskItemDto { Id = taskId, Title = "Updated", Description = "Changed", CategoryId = Guid.NewGuid() };
-        var existing = new TaskItem { Id = taskId, Title = "Old", Description = "Old", UserId = Guid.NewGuid() };
-
-        _repoMock.Setup(r => r.GetByIdAsync(taskId)).ReturnsAsync(existing);
-        _repoMock.Setup(r => r.UpdateAsync(It.IsAny<TaskItem>())).Returns(Task.CompletedTask);
-
-        await _service.UpdateAsync(dto, Guid.NewGuid(), UserRole.Admin);
-
-        existing.Title.Should().Be("Updated");
-        existing.Description.Should().Be("Changed");
-        existing.UpdatedAt.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task UpdateAsync_User_CannotUpdateOthersTask()
-    {
-        var userId = Guid.NewGuid();
-        var task = new TaskItem { Id = Guid.NewGuid(), Title = "x", Description = "x", UserId = Guid.NewGuid() };
-        var dto = new UpdateTaskItemDto { Id = task.Id, Title = "new", Description = "new", CategoryId = Guid.NewGuid() };
-
-        _repoMock.Setup(r => r.GetByIdAsync(task.Id)).ReturnsAsync(task);
-
-        var act = async () => await _service.UpdateAsync(dto, userId, UserRole.User);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
-    public async Task UpdateAsync_TaskNotFound_ThrowsException()
-    {
-        var dto = new UpdateTaskItemDto { Id = Guid.NewGuid(), Title = "x", Description = "x", CategoryId = Guid.NewGuid() };
-
-        _repoMock.Setup(r => r.GetByIdAsync(dto.Id)).ReturnsAsync((TaskItem?)null);
-
-        var act = async () => await _service.UpdateAsync(dto, Guid.NewGuid(), UserRole.Admin);
-
-        await act.Should().ThrowAsync<Exception>().WithMessage("Task not found");
-    }
-
-    [Fact]
-    public async Task DeleteAsync_User_CannotDeleteOthersTask()
-    {
-        var userId = Guid.NewGuid();
-        var task = new TaskItem { Id = Guid.NewGuid(), Title = "ToDelete", Description = "x", UserId = Guid.NewGuid() };
-
-        _repoMock.Setup(r => r.GetByIdAsync(task.Id)).ReturnsAsync(task);
-
-        var act = async () => await _service.DeleteAsync(task.Id, userId, UserRole.User);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_Admin_CanDelete()
-    {
-        var task = new TaskItem { Id = Guid.NewGuid(), Title = "AdminDelete", Description = "x", UserId = Guid.NewGuid() };
-
-        _repoMock.Setup(r => r.GetByIdAsync(task.Id)).ReturnsAsync(task);
-        _repoMock.Setup(r => r.DeleteAsync(task.Id)).Returns(Task.CompletedTask);
-
-        await _service.DeleteAsync(task.Id, Guid.NewGuid(), UserRole.Admin);
-
-        _repoMock.Verify(r => r.DeleteAsync(task.Id), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetFilteredAsync_FiltersByTitle()
-    {
-        var userId = Guid.NewGuid();
-        var filter = new TaskFilter { Title = "Test" };
-
-        var tasks = new List<TaskItem>
+        var update = new UpdateTaskItemDto
         {
-            new TaskItem { Id = Guid.NewGuid(), Title = "Test task", Description = "Description", UserId = userId },
-            new TaskItem { Id = Guid.NewGuid(), Title = "Other", Description = "Description", UserId = userId }
+            Id = Guid.NewGuid(),
+            Title = "X",
+            Description = "Y",
+            Status = TaskStatusEnum.New,
+            Category = "c"
         };
 
-        var expected = tasks.Where(t => t.Title.Contains("Test")).ToList();
+        _repoMock.Setup(r => r.GetByIdForUserAsync(update.Id, _userId)).ReturnsAsync((TaskItem?)null);
 
-        _repoMock.Setup(r => r.GetFilteredAsync(userId, UserRole.User, filter))
-                 .ReturnsAsync(expected);
+        var ok = await _service.UpdateAsync(update);
 
-        var result = await _service.GetFilteredAsync(userId, UserRole.User, filter);
+        ok.Should().BeFalse();
+        _repoMock.Verify(r => r.UpdateAsync(It.IsAny<TaskItem>()), Times.Never);
+    }
 
-        result.Should().HaveCount(expected.Count);
-        result.Should().OnlyContain(t => t.Title.Contains("Test"));
-    }*/
+    [Fact]
+    public async Task DeleteAsync_WhenFound_ReturnsTrue_And_CallsDelete()
+    {
+        var id = Guid.NewGuid();
+        var entity = new TaskItem { Id = id, Title = "Test", Description = "Test", Category = "Test", UserId = _userId };
+
+        _repoMock.Setup(r => r.GetByIdForUserAsync(id, _userId)).ReturnsAsync(entity);
+        _repoMock.Setup(r => r.DeleteAsync(id, _userId)).Returns(Task.CompletedTask);
+
+        var ok = await _service.DeleteAsync(id);
+
+        ok.Should().BeTrue();
+        _repoMock.Verify(r => r.DeleteAsync(id, _userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenNotFound_ReturnsFalse()
+    {
+        var id = Guid.NewGuid();
+        _repoMock.Setup(r => r.GetByIdForUserAsync(id, _userId)).ReturnsAsync((TaskItem?)null);
+
+        var ok = await _service.DeleteAsync(id);
+
+        ok.Should().BeFalse();
+        _repoMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
+    }
 }

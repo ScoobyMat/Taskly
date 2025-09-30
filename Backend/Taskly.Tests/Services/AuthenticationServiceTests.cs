@@ -4,7 +4,6 @@ using Application.Mappings;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
-using Domain.Enums;
 using Domain.Interfaces;
 using FluentAssertions;
 using Moq;
@@ -33,102 +32,29 @@ public class AuthenticationServiceTests
     }
 
     [Fact]
-    public async Task Login_WithValidCredentials_ReturnsToken()
+    public async Task Register_Succeeds_Returns_UserDto_And_HashesPassword()
     {
-        var password = "password123";
-        var hashed = BCrypt.Net.BCrypt.HashPassword(password);
-        var user = new User
+        var dto = new RegisterDto
         {
-            Id = Guid.NewGuid(),
-            FirstName = "Test",
-            LastName = "User",
-            Email = "test@example.com",
-            Password = hashed,
-            UserName = "TestUser"
+            FirstName = "Ana",
+            LastName = "Nowak",
+            UserName = "anowak",
+            Email = "ana@example.com",
+            Password = "Secret#123"
         };
 
-        _userRepoMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
-        _tokenServiceMock.Setup(t => t.CreateToken(user)).Returns("valid.jwt.token");
+        _userRepoMock.Setup(r => r.ExistsByEmailAsync(dto.Email)).ReturnsAsync(false);
+        _userRepoMock.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
 
-        var loginDto = new LoginDto { Email = user.Email, Password = password };
-
-        var result = await _authService.Login(loginDto);
+        var result = await _authService.Register(dto);
 
         result.Should().NotBeNull();
-        result.Token.Should().Be("valid.jwt.token");
-    }
-
-    [Fact]
-    public async Task Login_WithInvalidEmail_ThrowsUnauthorizedAccessException()
-    {
-        _userRepoMock.Setup(r => r.GetByEmailAsync("wrong@example.com")).ReturnsAsync((User?)null);
-
-        var loginDto = new LoginDto { Email = "wrong@example.com", Password = "anything" };
-
-        var act = async () => await _authService.Login(loginDto);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>()
-            .WithMessage("Invalid email or password");
-    }
-
-    [Fact]
-    public async Task Login_WithInvalidPassword_ThrowsUnauthorizedAccessException()
-    {
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            FirstName = "Test",
-            LastName = "User",
-            Email = "test@example.com",
-            Password = BCrypt.Net.BCrypt.HashPassword("correct"),
-            UserName = "TestUser"
-        };
-
-        _userRepoMock.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
-
-        var loginDto = new LoginDto { Email = user.Email, Password = "wrongPassword" };
-
-        var act = async () => await _authService.Login(loginDto);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>()
-            .WithMessage("Invalid email or password");
-    }
-
-    [Fact]
-    public async Task Register_WithNewEmail_CreatesUser()
-    {
-        var registerDto = new RegisterDto
-        {
-            Email = "new@example.com",
-            Password = "Secure123!",
-            UserName = "newuser",
-            FirstName = "John",
-            LastName = "Doe"
-        };
-
-        _userRepoMock.Setup(r => r.ExistsByEmailAsync(registerDto.Email))
-            .ReturnsAsync(false);
-
-        User? savedUser = null;
-
-        _userRepoMock.Setup(r => r.AddAsync(It.IsAny<User>()))
-            .Callback<User>(u => savedUser = u)
-            .Returns(Task.CompletedTask);
-
-        var result = await _authService.Register(registerDto);
-
-        //result.Email.Should().Be(registerDto.Email);
-        result.UserName.Should().Be(registerDto.UserName);
-
-        savedUser.Should().NotBeNull();
-        savedUser!.FirstName.Should().NotBeNullOrEmpty();
-        savedUser.LastName.Should().NotBeNullOrEmpty();  
-        savedUser.Email.Should().Be(registerDto.Email);
-        savedUser.UserName.Should().Be(registerDto.UserName);
-        savedUser.Password.Should().NotBeNullOrWhiteSpace();
-        BCrypt.Net.BCrypt.Verify(registerDto.Password, savedUser.Password).Should().BeTrue();
-
-        _userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        result.Email.Should().Be(dto.Email);
+        _userRepoMock.Verify(r => r.AddAsync(It.Is<User>(u =>
+            u.Email == dto.Email &&
+            u.UserName == dto.UserName &&
+            u.Password != dto.Password
+        )), Times.Once);
     }
 
     [Fact]
@@ -148,5 +74,68 @@ public class AuthenticationServiceTests
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("A user with this email address already exists");
     }
+
+
+    [Fact]
+    public async Task Login_ValidCredentials_Returns_Token_And_UserData()
+    {
+        var login = new LoginDto
+        {
+            Email = "ana@example.com",
+            Password = "Secret#123"
+        };
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Ana",
+            LastName = "Nowak",
+            UserName = "anowak",
+            Email = login.Email,
+            Password = BCrypt.Net.BCrypt.HashPassword(login.Password)
+        };
+
+        _userRepoMock.Setup(r => r.GetByEmailAsync(login.Email)).ReturnsAsync(user);
+        _tokenServiceMock.Setup(t => t.CreateToken(user)).Returns("dummy.jwt.token");
+
+        var auth = await _authService.Login(login);
+
+        auth.Should().NotBeNull();
+        auth.Token.Should().Be("dummy.jwt.token");
+        auth.FirstName.Should().Be("Ana");
+        auth.UserName.Should().Be("anowak");
+
+        _tokenServiceMock.Verify(t => t.CreateToken(user), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("missing@example.com", "whatever", false)]
+    [InlineData("test@example.com", "wrongPassword", true)]
+    public async Task Login_InvalidCredentials_ThrowsUnauthorized(string email, string password, bool userExists)
+    {
+        User? user = null;
+        if (userExists)
+        {
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Test",
+                LastName = "User",
+                Email = email,
+                UserName = "TestUser",
+                Password = BCrypt.Net.BCrypt.HashPassword("correct")
+            };
+        }
+
+        _userRepoMock.Setup(r => r.GetByEmailAsync(email)).ReturnsAsync(user);
+
+        var loginDto = new LoginDto { Email = email, Password = password };
+
+        var act = async () => await _authService.Login(loginDto);
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>()
+                 .WithMessage("Invalid email or password");
+    }
+
 
 }

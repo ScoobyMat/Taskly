@@ -31,8 +31,6 @@ Thumbs.db
 
 .env
 
-**/Migrations/*Designer.cs
-
 node_modules/
 Frontend/**/dist/
 Frontend/**/.angular/

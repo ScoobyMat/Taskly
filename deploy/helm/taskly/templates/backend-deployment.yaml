@@ -8,15 +8,13 @@ spec:
   replicas: {{.Values.backend.replicaCount }}
   selector:
     matchLabels:
-      app: backend
-      {{- include "taskly.selectorLabels" . | nindent 6 }}
+        {{- include "taskly.backend.selectorLabels" . | nindent 8 }}
   template:
     metadata:
       labels:
-        app: backend
-        {{- include "taskly.selectorLabels" . | nindent 8 }}
+        {{- include "taskly.backend.selectorLabels" . | nindent 8 }}
       annotations:
-      checksum/secret-jwt: {{ include (print .Template.BasePath "/secret.dev.yaml") . | sha256sum }}
+        checksum/secret-jwt: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
       {{- with .Values.backend.podSecurityContext}}
       securityContext:
@@ -63,11 +61,11 @@ spec:
                 Password={{ .Values.postgresql.auth.password }};
                 Pooling=true
 
-          - name: JWT_TOKEN
+          - name: JWT__TokenKey
             valueFrom:
               secretKeyRef:
                 name: {{ include "taskly.SecretName" . }}-secret
-                key: JWT_TOKEN
+                key: JWT__TokenKey
 
           livenessProbe:
             httpGet:

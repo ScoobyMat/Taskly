@@ -5,10 +5,9 @@ metadata:
   labels:
     {{- include "taskly.frontend.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.frontend.service.type }}
   selector:
-    app.kubernetes.io/component: frontend
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "taskly.frontend.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.frontend.service.type }} 
   ports:
     - name: http
       port: {{ .Values.frontend.service.port }}

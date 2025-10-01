@@ -1,87 +1,77 @@
-{{/*
-Expand the name of the chart.
-*/}}
 {{- define "taskly.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
 {{- define "taskly.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
 {{- end }}
 
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
 {{- define "taskly.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Common labels
-*/}}
 {{- define "taskly.labels" -}}
 helm.sh/chart: {{ include "taskly.chart" . }}
-{{ include "taskly.selectorLabels" . }}
+app.kubernetes.io/name: {{ include "taskly.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
-{{/*
-Selector labels
-*/}}
-{{- define "taskly.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "taskly.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "taskly.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "taskly.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
+
+
+{{- define "taskly.common.selectorBase" -}}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/part-of: taskly
+{{- end -}}
+
+
+
+{{- define "taskly.backend.selectorLabels" -}}
+{{ include "taskly.common.selectorBase" . }}
+app.kubernetes.io/name: backend
+app.kubernetes.io/component: backend
+app.kubernetes.io/version: {{ .Chart.AppVersion | default .Chart.Version }}
+{{- end -}}
+
+{{- define "taskly.backend.labels" -}}
+{{ include "taskly.backend.selectorLabels" . }}
+{{- end -}}
 
 {{- define "taskly.backend.fullname" -}}
 {{ include "taskly.fullname" . }}-backend
 {{- end -}}
 
-{{- define "taskly.backend.labels" -}}
-app.kubernetes.io/name: backend
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/part-of: taskly
-app.kubernetes.io/component: backend
+
+
+{{- define "taskly.frontend.selectorLabels" -}}
+{{ include "taskly.common.selectorBase" . }}
+app.kubernetes.io/name: frontend
+app.kubernetes.io/component: frontend
+app.kubernetes.io/version: {{ .Chart.AppVersion | default .Chart.Version }}
+{{- end -}}
+
+{{- define "taskly.frontend.labels" -}}
+{{ include "taskly.frontend.selectorLabels" . }}
 {{- end -}}
 
 {{- define "taskly.frontend.fullname" -}}
 {{ include "taskly.fullname" . }}-frontend
 {{- end -}}
 
-{{- define "taskly.frontend.labels" -}}
-app.kubernetes.io/name: frontend
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/part-of: taskly
-app.kubernetes.io/component: frontend
-{{- end -}}
+
 
 {{- define "taskly.SecretName" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}

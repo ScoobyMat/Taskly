@@ -5,7 +5,6 @@ using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.    
 IConfiguration configuration = builder.Configuration;
 builder.Services.InstallServicesInAssembly(configuration);
 

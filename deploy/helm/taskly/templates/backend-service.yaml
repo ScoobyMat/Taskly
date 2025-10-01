@@ -3,13 +3,11 @@ kind: Service
 metadata:
   name: {{ include "taskly.backend.fullname" . }}
   labels:
-    app: backend
-    {{- include "taskly.labels" . | nindent 4 }}
+    {{- include "taskly.backend.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.backend.service.type | default "ClusterIP" }}
   selector:
-    app: backend
-    {{- include "taskly.selectorLabels" . | nindent 4 }}
+    {{- include "taskly.backend.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.backend.service.type | default "ClusterIP" }}  
   ports:
     - name: http
       port: {{ .Values.backend.service.port }}
